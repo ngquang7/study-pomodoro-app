@@ -1,122 +1,89 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './index.css';
+import TimerDisplay from './components/TimerDisplay';
+import TimerControls from './components/TimerControls';
+import Header from './components/Header';
+import SettingClock from './components/SettingClock';
+import {ImageUpload} from './components/Custom';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [mode, setMode] = useState<"focus" | "shortBreak">("focus");
+  const [focusTime, setFocusTime] = useState(25);
+  const [shortBreak, setShortBreak] = useState(5);
+  const [secondsLeft, setSecondsLeft] = useState(focusTime * 60);
+  const [isActive, setIsActive] = useState<boolean>(false);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Core countdown logic using useEffect
+  useEffect(() => {
+    let interval: number | undefined;
+
+    if (isActive && secondsLeft > 0) {
+      interval = window.setInterval(() => {
+        setSecondsLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (secondsLeft === 0) {
+      setIsActive(false); // Stop when it hits 00:00
+      alert("Time's up! Take a break.");
+    }
+
+    // Cleanup interval when component unmounts or state changes
+    return () => clearInterval(interval);
+  }, [isActive, secondsLeft]);
+
+  const toggleTimer = () => setIsActive(!isActive);
+  
+  const resetTimer = () => {
+    setIsActive(false);
+    /* this is WRONG*/ 
+    // setSecondsLeft(focusTime * 60);
+    setSecondsLeft(mode === 'focus' ? focusTime * 60 : shortBreak * 60);
+  };
+
+  const skipSession = () => {
+  setIsActive(false);
+
+  if (mode === "focus") {
+    setMode("shortBreak");
+    setSecondsLeft(shortBreak * 60);
+  } else {
+    setMode("focus");
+    setSecondsLeft(focusTime * 60);
+  }
+};
+  
+
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+
+    <div className="app-wrapper">
+      <Header/> 
+      
+      <TimerDisplay secondsLeft={secondsLeft} mode={mode} />
+      <TimerControls 
+        isActive={isActive} 
+        onToggle={toggleTimer} 
+        onReset={resetTimer} 
+        skipSession={skipSession}
+      />
+        <button  className="setting-css" onClick={() => setShowSettings(true)}>
+          ⚙️ Settings
         </button>
-      </section>
+      <div>
+        {showSettings && (
+          <SettingClock
+          onClose={() => setShowSettings(false)}
+          focusTime={focusTime}
+          setFocusTime={setFocusTime}
+          shortBreak={shortBreak}
+          setShortBreak={setShortBreak}
+          setSecondsLeft={setSecondsLeft}
+          />
+        )}
+      </div>
+        
+      <ImageUpload/>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    </div>
+  );
 }
-
-export default App
