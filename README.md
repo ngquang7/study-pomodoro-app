@@ -74,3 +74,7 @@ export default defineConfig([
 ])
 
 ```
+
+<img width="1883" height="1047" alt="{FFA78C50-D021-4E3A-91EB-65FC4A3AD8D2}" src="https://github.com/user-attachments/assets/fe5fdb13-2b1e-4010-9e2c-d99755182468" />
+This website have some very basic features, and you can customize your background.
+
